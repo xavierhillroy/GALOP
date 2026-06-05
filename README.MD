@@ -1,8 +1,7 @@
 # Ribox — CURRENT STATE: Parallel LGP GPU SR Implementation (DELIVERABLE 2) 
 
-A fast, single-threaded C++ implementation of Linear Genetic Programming (LGP),
-built as the CPU reference and algorithmic foundation for a GPU-oriented LGP
-system. This is **Deliverable 1** of a three-part project.
+A fast, CUDA C++ implementation of Linear Genetic Programming (LGP),
+built as the SR prototype for massive RL Populations... Getting my feet wet ;). This is **Deliverable 1** of a three-part project.
 
 ## The larger goal
 
