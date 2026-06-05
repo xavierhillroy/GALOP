@@ -1,4 +1,4 @@
-# Ribox — Sequential LGP Reference (Deliverable 1)
+# Ribox — CURRENT STATE: Parallel LGP GPU SR Implementation (DELIVERABLE 2) 
 
 A fast, single-threaded C++ implementation of Linear Genetic Programming (LGP),
 built as the CPU reference and algorithmic foundation for a GPU-oriented LGP
