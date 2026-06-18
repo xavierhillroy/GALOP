@@ -262,8 +262,8 @@ void LGPEngine::vary(){
     // fill elites - carries over length and fitness and all that good stuff 
     std::vector<int> topK = top_k_indices(LGPConfig::ELITE_COUNT);
 
-    for (int e = 0; e < LGPConfig::ELITE_COUNT; ++e){
-        copy_elite_to_next(topK[e], e);
+    for (int e = 0; e < LGPConfig::ELITE_COUNT; ++e){ // FILLS first spots 
+        copy_elite_to_next(topK[e], e);  // 
     }
     // populate with real variation 
     for (int children = LGPConfig::ELITE_COUNT; children < LGPConfig::POPULATION_SIZE; children +=2){

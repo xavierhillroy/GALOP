@@ -35,7 +35,7 @@ inline static void execute(const uint32_t* instructions, int length, float *regi
 namespace Interpreter{
     void run_stateless(const uint32_t* instructions, int inst_length, const float* inputs,  int num_inputs, float* outputs){
             // allocate registers 
-            float registers[LGPConfig::NUM_CONTEXTS * LGPConfig::NUM_REGISTERS];
+            float registers[LGPConfig::NUM_CONTEXTS * LGPConfig::NUM_REGISTERS]; // NUM REGISTERS for each contexts
             assert(num_inputs<= LGPConfig::NUM_REGISTERS);
             // init inputs and 0.0f the rest
             for(int c = 0; c < LGPConfig::NUM_CONTEXTS; ++c){
