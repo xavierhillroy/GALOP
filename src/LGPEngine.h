@@ -10,7 +10,8 @@
 #include "GenerationStats.h"
 #include <ostream>
 #include <iostream>
-
+#include "EvalBackend.h"
+#include <memory>
 
 // =============================================================================
 // PopulationData: owns all the buffers that describe the population.
@@ -111,10 +112,12 @@ private:
     // ---- Population --------------------------------------------------------
     PopulationData data;                           // All buffers; default-constructed.
     std::vector<GenerationStats> history;
+    std::unique_ptr<EvalBackend> backend; // pointer to backend we use (EIther CPU/ GPU or RL or SR )
+
 
 
 public:
-    explicit LGPEngine(uint32_t seed = LGPConfig::SEED);
+    explicit LGPEngine(uint32_t seed = LGPConfig::SEED, std::unique_ptr<EvalBackend> eval = nullptr);
     ~LGPEngine() = default;
     ProgramView view_program(int i) const; // returns a program view object ( cur instruction part and cur length)
     void evaluate_all_sr(const Dataset& dataset); // evluates entire population... this loop will disappear on GPU - be assigned to diff warps 
@@ -203,8 +206,5 @@ private:
 
 };
 
-namespace Fitness {
-    float mse_to_fitness(float mse);
-    float r2_to_fitness(float r2);
-}
+
 #endif  // LGP_ENGINE_H

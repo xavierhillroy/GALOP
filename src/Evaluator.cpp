@@ -85,3 +85,14 @@ namespace Evaluator{
     }
 
 }
+float Fitness::mse_to_fitness(float mse){ // converts lower is better mse to higher is better for fitness selection
+    if (!std::isfinite(mse)) return 0.0f;
+    return 1.0f / (1.0f + mse);
+
+}
+float Fitness::r2_to_fitness(float r2) {
+    if (!std::isfinite(r2)) return 0.0f;
+    // R² is already higher-is-better and ~bounded above by 1.
+    // Clamp the floor so a terrible model (negative R²) maps to 0, not garbage.
+    return r2 < 0.0f ? 0.0f : r2;
+}

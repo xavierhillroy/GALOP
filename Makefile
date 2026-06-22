@@ -18,7 +18,7 @@ vpath %.cpp $(SRC_DIR) $(TOOLS_DIR) $(TEST_DIR)
 
 # ---- Files ----
 # Listed by basename only; vpath resolves the directory.
-CORE_SRCS := LGPEngine.cpp Interpreter.cpp Evaluator.cpp Dataset.cpp
+CORE_SRCS := LGPEngine.cpp Interpreter.cpp Evaluator.cpp Dataset.cpp EvaluatorCpu.cpp
 CORE_OBJS := $(addprefix $(BUILD_DIR)/,$(CORE_SRCS:.cpp=.o))
 
 # Each binary has its own entry-point translation unit.

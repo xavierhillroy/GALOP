@@ -11,6 +11,7 @@
 #include <numeric>
 #include "GenerationStats.h"
 #include <ostream>
+#include "EvaluatorCpu.h"
 void LGPEngine::init_evolution(){
     current_buffer = 0;
     current_generation = 0;
@@ -39,15 +40,13 @@ uint32_t LGPEngine::generate_instruction(){
     return ISA::encode_from_random(raw_rand); // packs and cleans bits (lose some entropy)
 }
 // constructor- kept explicitly clean- inits current buffer to 0, sets gen to 0, sets up the seed, and distribution, verbose data init
-LGPEngine::LGPEngine(uint32_t seed)
-    : current_generation(0),
-    current_buffer(0), 
-    rng(seed), 
-    dist_32(0,UINT32_MAX), dist_pop(0,LGPConfig::POPULATION_SIZE-1),
-    dist_unit(0.0f, 1.0f),
-    dist_field(0, 4),
-    data()
-{} 
+LGPEngine::LGPEngine(uint32_t seed, std::unique_ptr<EvalBackend> eval)
+    : current_generation(0), current_buffer(0), rng(seed),
+      dist_32(0,UINT32_MAX), dist_pop(0,LGPConfig::POPULATION_SIZE-1),
+      dist_unit(0.0f,1.0f), dist_field(0,4), data(),
+      backend(eval ? std::move(eval) : std::make_unique<CpuEvaluator>())
+{}
+
 
 
 // This is program view, a method that returns the program view structure, contains length of cur prog and pointer to the start of it 
@@ -59,26 +58,24 @@ ProgramView LGPEngine::view_program(int i) const{
         static_cast<int>(cur_lengths()[i]) // explicitly casting to int (widening from uint 8)
     };
 }
+// void LGPEngine::evaluate_all_sr(const Dataset& dataset){
+//     for (int agent = 0; agent < LGPConfig::POPULATION_SIZE; ++agent){
+//         if(std::isnan(cur_fitness()[agent])){
+//             const ProgramView prog = view_program(agent);
+//             cur_fitness_mutable()[agent] = Fitness::r2_to_fitness(Evaluator::evaluate_sr_r2(prog, dataset));
+//         }
+//     }
+// }
+
 void LGPEngine::evaluate_all_sr(const Dataset& dataset){
-    for (int agent = 0; agent < LGPConfig::POPULATION_SIZE; ++agent){
-        if(std::isnan(cur_fitness()[agent])){
-            const ProgramView prog = view_program(agent);
-            cur_fitness_mutable()[agent] = Fitness::r2_to_fitness(Evaluator::evaluate_sr_r2(prog, dataset));
-        }
-    }
+    backend->evaluate_population(
+        cur_instructions().data(),
+        cur_lengths().data(),
+        cur_fitness_mutable().data(),
+        LGPConfig::POPULATION_SIZE,     // whole population in Phase 1; offset comes in Phase 2
+        dataset);
 }
 
-float Fitness::mse_to_fitness(float mse){ // converts lower is better mse to higher is better for fitness selection
-    if (!std::isfinite(mse)) return 0.0f;
-    return 1.0f / (1.0f + mse);
-
-}
-float Fitness::r2_to_fitness(float r2) {
-    if (!std::isfinite(r2)) return 0.0f;
-    // R² is already higher-is-better and ~bounded above by 1.
-    // Clamp the floor so a terrible model (negative R²) maps to 0, not garbage.
-    return r2 < 0.0f ? 0.0f : r2;
-}
 int LGPEngine::tournament_selection(){
     // select k agents, return the one with the highest fitness 
     //reads from the current buffer fitness fitness_scores

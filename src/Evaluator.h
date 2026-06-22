@@ -27,4 +27,9 @@ namespace Evaluator {
     float evaluate_sr_mse(const ProgramView& prog, const Dataset& dataset);
     float evaluate_sr_r2(const ProgramView& prog, const Dataset& dataset);
 }
+
+namespace Fitness {
+    float mse_to_fitness(float mse);
+    float r2_to_fitness(float r2);
+}
 #endif
