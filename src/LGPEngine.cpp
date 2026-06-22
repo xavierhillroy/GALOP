@@ -67,15 +67,30 @@ ProgramView LGPEngine::view_program(int i) const{
 //     }
 // }
 
-void LGPEngine::evaluate_all_sr(const Dataset& dataset){
+// void LGPEngine::evaluate_all_sr(const Dataset& dataset){
+    
+//     backend->evaluate_population(
+//         cur_instructions().data(),
+//         cur_lengths().data(),
+//         cur_fitness_mutable().data(),
+//         LGPConfig::POPULATION_SIZE,  // 
+//         dataset);
+// }
+// old version iwht no offset for elites - use NAN check in hotloop
+
+void LGPEngine::evaluate_range(int start, int count, const Dataset& dataset){
     backend->evaluate_population(
-        cur_instructions().data(),
-        cur_lengths().data(),
-        cur_fitness_mutable().data(),
-        LGPConfig::POPULATION_SIZE,     // whole population in Phase 1; offset comes in Phase 2
+        cur_instructions().data()    + start * LGPConfig::MAX_PROGRAM_SIZE,  // stride!
+        cur_lengths().data()         + start,
+        cur_fitness_mutable().data() + start,
+        count,
         dataset);
 }
 
+// ALL means entire populations
+void LGPEngine::evaluate_all_sr(const Dataset& dataset){
+    evaluate_range(0, LGPConfig::POPULATION_SIZE, dataset);
+}
 int LGPEngine::tournament_selection(){
     // select k agents, return the one with the highest fitness 
     //reads from the current buffer fitness fitness_scores
@@ -313,7 +328,8 @@ void LGPEngine::evolve_sr(const Dataset& dataset){
     for (int gen = 1; gen < LGPConfig::MAX_GENERATIONS; ++gen){
         current_generation = gen;
         vary(); // this does tthe flip 
-        evaluate_all_sr(dataset); // eval on cur gen 
+        evaluate_range(LGPConfig::ELITE_COUNT,
+                   LGPConfig::NON_ELITE_COUNT, dataset); // skips elites 
         history.push_back(compute_stats()); // based on cur gen - if something flips then reading from wrong buffer
     }
 }

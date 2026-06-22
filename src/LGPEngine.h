@@ -197,6 +197,8 @@ private:
     
     void reset_buffers_to_sentinels();
     GenerationStats compute_stats() const;
+    // header (private): evaluate programs [start, start+count) via the backend
+    void evaluate_range(int start, int count, const Dataset& dataset);
     public:
     float best_train_r2() const;
     float best_test_r2(const Dataset& test) const;
