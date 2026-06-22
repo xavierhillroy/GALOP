@@ -79,10 +79,10 @@ ProgramView LGPEngine::view_program(int i) const{
 // old version iwht no offset for elites - use NAN check in hotloop
 
 void LGPEngine::evaluate_range(int start, int count, const Dataset& dataset){
-    backend->evaluate_population(
+    backend->evaluate_population(//skipping elites
         cur_instructions().data()    + start * LGPConfig::MAX_PROGRAM_SIZE,  // stride!
-        cur_lengths().data()         + start,
-        cur_fitness_mutable().data() + start,
+        cur_lengths().data()         + start, 
+        cur_fitness_mutable().data() + start, 
         count,
         dataset);
 }
