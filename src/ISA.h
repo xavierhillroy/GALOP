@@ -4,6 +4,16 @@
 #include "LGPConfig.h"
 #include <cmath>
 
+// Let these inline helpers be called from CUDA device code: the GPU kernel
+// reuses the EXACT same decode/apply logic as the CPU interpreter, so the two
+// can never drift. Under nvcc, decorate with __host__ __device__; under a
+// plain host compiler, ISA_HD expands to nothing and the code is unchanged.
+#ifdef __CUDACC__
+  #define ISA_HD __host__ __device__
+#else
+  #define ISA_HD
+#endif
+
 // =============================================================================
 // ISA: Instruction Set Architecture for the LGP system.
 //
@@ -93,7 +103,7 @@ namespace ISA {
     // No runtime randomness needed per-field -- one 32-bit draw supplies
     // enough bits to fill every field of the instruction.
     // -------------------------------------------------------------------------
-    inline uint32_t encode_from_random(uint32_t raw_rand){
+    ISA_HD inline uint32_t encode_from_random(uint32_t raw_rand){
         /**
         Example of what we are doing 
         encoded_instruct = 0000 0000 0000 0000 0000 0000 0000 0000 
@@ -137,7 +147,7 @@ namespace ISA {
     // safe -- they get clipped to the valid range rather than corrupting
     // neighbouring fields.
     // -------------------------------------------------------------------------
-    inline uint32_t encode_manual(uint8_t op, uint8_t dest, uint8_t src1, uint8_t src2, bool is_constant){
+    ISA_HD inline uint32_t encode_manual(uint8_t op, uint8_t dest, uint8_t src1, uint8_t src2, bool is_constant){
         uint32_t encoded_instruct = 0;
         encoded_instruct |= (static_cast<uint32_t>(op   & LGPConfig::OPERATION_MASK) << OP_SHIFT);
         encoded_instruct |= (static_cast<uint32_t>(dest & LGPConfig::REGISTER_MASK)  << DEST_SHIFT);
@@ -163,16 +173,16 @@ namespace ISA {
     // and should round-trip for any instruction produced by either encoder.
     // =========================================================================
 
-    inline uint8_t get_op(uint32_t instruction){
+    ISA_HD inline uint8_t get_op(uint32_t instruction){
         // OP lives in the low byte; no shift needed.
         return (instruction >> OP_SHIFT) & LGPConfig::OPERATION_MASK;
     }
 
-    inline uint8_t get_dest_index(uint32_t instruction){
+    ISA_HD inline uint8_t get_dest_index(uint32_t instruction){
         return ((instruction >> DEST_SHIFT) & LGPConfig::REGISTER_MASK);
     }
 
-    inline uint8_t get_src1_index(uint32_t instruction){
+    ISA_HD inline uint8_t get_src1_index(uint32_t instruction){
         return ((instruction >> SRC1_SHIFT) & LGPConfig::REGISTER_MASK);
     }
 
@@ -180,11 +190,11 @@ namespace ISA {
     // the index and one for the mode flag. The interpreter should call
     // is_src2_constant() first to decide which pool (registers vs. CONSTANTS)
     // the index should select into.
-    inline uint8_t get_src2_index(uint32_t instruction){
+    ISA_HD inline uint8_t get_src2_index(uint32_t instruction){
         return (instruction >> SRC2_SHIFT) & SRC2_INDEX_MASK;
     }
 
-    inline bool is_src2_constant(uint32_t instruction){
+    ISA_HD inline bool is_src2_constant(uint32_t instruction){
         // Shift the SRC2 byte into the low position, then test the mode bit.
         // Returns true if src2 should index into CONSTANTS[], false for
         // the register file.
@@ -202,7 +212,7 @@ namespace ISA {
     // call site and (later) so the GPU and CPU interpreters share one
     // canonical definition.
     // -------------------------------------------------------------------------
-    inline float apply_op(uint8_t op, float a, float b) {
+    ISA_HD inline float apply_op(uint8_t op, float a, float b) {
         switch (op) {
             case ADD: return a + b;
             case SUB: return a - b;
